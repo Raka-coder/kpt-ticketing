@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+package bioskop;
+
+// Kontrak layanan reservasi tiket bioskop.
+service LayananBioskop {
+  // Unary, idempoten: daftar jadwal tayang beserta jumlah kursi kosong.
+  rpc ListJadwal (ListJadwalRequest) returns (ListJadwalResponse);
+
+  // Unary, idempoten: peta kursi sebuah jadwal (snapshot saat ini).
+  rpc GetPetaKursi (PetaRequest) returns (PetaKursi);
+
+  // Unary, TIDAK idempoten: memesan satu atau beberapa kursi (semua-atau-tidak-sama-sekali).
+  // Dilindungi request_id -> semantik at-most-once.
+  rpc PesanKursi (PesanRequest) returns (PesanResponse);
+
+  // Unary, TIDAK idempoten: membatalkan pesanan. Dilindungi request_id.
+  rpc BatalkanPesanan (BatalRequest) returns (BatalResponse);
+
+  // Server streaming: snapshot awal lalu setiap perubahan status kursi secara real-time.
+  rpc StreamStatusKursi (PetaRequest) returns (stream PerubahanKursi);
+}
+
+enum StatusKursi {
+  KOSONG = 0;
+  TERISI = 1;
+}
+
+message ListJadwalRequest {}
+
+message Jadwal {
+  string id = 1;
+  string film = 2;
+  string studio = 3;
+  string waktu = 4;
+  int32 baris = 5;
+  int32 kolom = 6;
+  int32 kursi_kosong = 7;
+}
+
+message ListJadwalResponse { repeated Jadwal jadwal = 1; }
+
+message PetaRequest { string jadwal_id = 1; }
+
+message Kursi {
+  string kode = 1;            // contoh: "A1"
+  StatusKursi status = 2;
+  string pemesan = 3;         // kosong jika KOSONG
+}
+
+message PetaKursi {
+  Jadwal jadwal = 1;
+  repeated Kursi kursi = 2;
+}
+
+message PesanRequest {
+  string request_id = 1;      // UUID unik per operasi logis (sama untuk setiap retry)
+  string jadwal_id = 2;
+  string pemesan = 3;
+  repeated string kursi = 4;
+}
+
+message PesanResponse {
+  bool sukses = 1;
+  string pesan = 2;
+  string kode_booking = 3;
+  repeated string kursi_dipesan = 4;
+  repeated string kursi_gagal = 5;
+  bool duplikat = 6;          // true jika balasan berasal dari cache deduplikasi
+}
+
+message BatalRequest {
+  string request_id = 1;
+  string kode_booking = 2;
+  string pemesan = 3;
+}
+
+message BatalResponse {
+  bool sukses = 1;
+  string pesan = 2;
+  repeated string kursi_dilepas = 3;
+  bool duplikat = 4;
+}
+
+message PerubahanKursi {
+  int64 seq = 1;              // nomor urut perubahan (0 untuk snapshot awal)
+  Kursi kursi = 2;
+  bool snapshot = 3;          // true = bagian dari snapshot awal
+}
