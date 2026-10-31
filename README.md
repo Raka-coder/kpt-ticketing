@@ -148,3 +148,121 @@ Kerangka kode proyek ini dihasilkan dengan bantuan asisten AI (Claude, Anthropic
 tugas bahwa alat bantu wajib dicantumkan. Mahasiswa wajib memahami, menjalankan, dan menjelaskan
 seluruh kode saat presentasi, serta melengkapi bagian yang ditandai `[ISI]` di laporan
 (identitas, hasil benchmark, pembagian tugas, tautan repositori & video).
+
+
+---
+
+## Menu Admin
+
+Fitur admin ditambahkan sebagai **gRPC service terpisah** (`LayananAdmin`) yang berjalan di **port yang sama** (50051) dengan `LayananBioskop`. Admin CLI berkomunikasi dengan server melalui gRPC, terpisah sepenuhnya dari CLI client biasa.
+
+### File baru yang ditambahkan
+
+| Berkas | Fungsi |
+|---|---|
+| `proto/admin.proto` | Kontrak RPC admin: `LoginAdmin`, `GetDashboard`, `TambahJadwal`, `UbahJadwal`, `HapusJadwal`, `ListSemuaPesanan`, `GetDetailTransaksi` |
+| `admin_pb2.py` | Generated protobuf stubs untuk admin (dari `proto/admin.proto`) |
+| `admin_pb2_grpc.py` | Generated gRPC stubs untuk admin |
+| `admin_auth.py` | Autentikasi admin: hash SHA-256 + salt, session token in-memory dengan TTL 1 jam |
+| `admin_logika.py` | Logika admin: tambah/ubah/hapus jadwal, list pesanan, statistik dashboard |
+| `admin_servicer.py` | Implementasi `LayananAdminServicer` (gRPC servicer) |
+| `admin_cli.py` | Menu CLI admin interaktif (terminal) |
+| `tests/test_admin.py` | Unit test fitur admin (tanpa gRPC) |
+
+### Perubahan additive pada file lama
+
+| Berkas | Perubahan |
+|---|---|
+| `server.py` | Ditambahkan 3 baris: import `admin_pb2_grpc`, import `LayananAdminServicer`, registrasi `LayananAdminServicer` ke server gRPC |
+
+Tidak ada kode, fungsi, class, atau variabel lama yang dihapus, diubah, atau di-rename.
+
+### Setup akun admin (sekali saja)
+
+```bash
+python admin_auth.py --setup
+# Masukkan username dan password saat diminta
+# Kredensial disimpan terenkripsi di .admin_config.json
+```
+
+> **Keamanan**: Password **tidak** disimpan di kode. Disimpan sebagai SHA-256 hash + salt acak di `.admin_config.json`. File ini sudah masuk `.gitignore` (tambahkan sendiri jika perlu).
+
+### Menjalankan server (dengan admin service aktif)
+
+```bash
+# Terminal 1 — server bioskop + admin service di port yang sama
+python server.py
+
+# Atau dengan opsi tambahan:
+python server.py --port 50051 --workers 32 --state-file state.json
+```
+
+Admin service otomatis aktif karena sudah didaftarkan di `server.py`. Tidak ada flag khusus yang diperlukan.
+
+### Menjalankan CLI Admin
+
+```bash
+# Terminal 2
+python admin_cli.py
+
+# Server di host lain:
+python admin_cli.py --host 192.168.1.10:50051
+```
+
+Tampilan menu utama:
+
+```
+============================================
+        BIOSKOP TICKETING SYSTEM
+============================================
+              ADMIN MENU
+============================================
+  1. Dashboard
+  2. Kelola Jadwal Film
+  3. Daftar Seluruh Pesanan
+  4. Peta & Status Kursi
+  5. Detail Transaksi
+  6. Logout
+============================================
+  Pilih menu [1-6]:
+```
+
+### Fitur admin yang tersedia
+
+| # | Fitur | Deskripsi |
+|---|---|---|
+| 1 | **Login / Logout** | Autentikasi dengan username + password; sesi berakhir otomatis setelah 1 jam |
+| 2 | **Dashboard** | Ringkasan: total jadwal, total pesanan aktif, total kursi terisi/kosong, statistik per jadwal |
+| 3 | **Lihat Semua Jadwal** | Tabel seluruh jadwal beserta kapasitas kursi |
+| 4 | **Peta Kursi** | Peta visual kursi setiap jadwal, lengkap nama pemesan |
+| 5 | **Daftar Pesanan** | Seluruh pesanan (bisa difilter per jadwal); tampilkan status aktif/batal |
+| 6 | **Tambah Jadwal** | Tambah jadwal film baru dengan ID, film, studio, waktu, baris, kolom |
+| 7 | **Ubah Jadwal** | Ubah metadata jadwal (film/studio/waktu); data kursi & pesanan tidak berubah |
+| 8 | **Hapus Jadwal** | Hapus jadwal; ditolak jika masih ada pesanan aktif |
+| 9 | **Detail Transaksi** | Detail lengkap satu pemesanan berdasarkan kode booking |
+
+### Menjalankan uji unit admin
+
+```bash
+# Jalankan semua test (lama + baru) sekaligus
+python -m unittest discover -s tests -v
+
+# Atau hanya test admin:
+python -m unittest tests.test_admin -v
+```
+
+### CLI client biasa (tidak berubah)
+
+```bash
+python klien_cli.py jadwal
+python klien_cli.py peta J1
+python klien_cli.py pesan J1 Andi A1 A2
+python klien_cli.py batal J1-0001 Andi
+python klien_cli.py pantau J1
+```
+
+### Generate ulang stubs admin (jika proto diubah)
+
+```bash
+python -m grpc_tools.protoc -I proto --python_out=. --grpc_python_out=. proto/admin.proto
+```

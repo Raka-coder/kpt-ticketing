@@ -13,6 +13,10 @@ import bioskop_pb2 as pb
 import bioskop_pb2_grpc as pb_grpc
 from logika import StoreBioskop, JadwalTidakAda, InputTidakValid
 
+# --- Admin service (additive, tidak mengubah LayananBioskop di atas) ----------
+import admin_pb2_grpc as _apb_grpc
+from admin_servicer import LayananAdminServicer
+
 
 class LayananBioskop(pb_grpc.LayananBioskopServicer):
     def __init__(self, store, lambat_prob=0.0, lambat_detik=3.0):
@@ -88,6 +92,8 @@ def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=a.workers))
     pb_grpc.add_LayananBioskopServicer_to_server(
         LayananBioskop(store, a.lambat_prob, a.lambat_detik), server)
+    # Admin service didaftarkan di server yang sama (additive)
+    _apb_grpc.add_LayananAdminServicer_to_server(LayananAdminServicer(store), server)
     server.add_insecure_port(f"[::]:{a.port}")
     server.start()
     print(f"Server bioskop berjalan di port {a.port} "

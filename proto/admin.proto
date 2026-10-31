@@ -1,0 +1,125 @@
+syntax = "proto3";
+
+package admin;
+
+// Layanan khusus admin bioskop (berjalan di port yang sama dengan LayananBioskop).
+service LayananAdmin {
+  // Autentikasi
+  rpc LoginAdmin (LoginRequest) returns (LoginResponse);
+
+  // Dashboard ringkasan
+  rpc GetDashboard (AdminRequest) returns (DashboardResponse);
+
+  // Manajemen jadwal
+  rpc TambahJadwal    (TambahJadwalRequest) returns (AdminResponse);
+  rpc UbahJadwal      (UbahJadwalRequest)   returns (AdminResponse);
+  rpc HapusJadwal     (HapusJadwalRequest)  returns (AdminResponse);
+
+  // Data pemesanan
+  rpc ListSemuaPesanan    (ListPesananRequest)       returns (ListPesananResponse);
+  rpc GetDetailTransaksi  (DetailTransaksiRequest)   returns (DetailTransaksiResponse);
+}
+
+// ─── Auth ───────────────────────────────────────────────────────────────────
+
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  bool   sukses = 1;
+  string pesan  = 2;
+  string token  = 3;   // session token, kirim di setiap request admin berikutnya
+}
+
+// Header umum untuk request yang membutuhkan autentikasi
+message AdminRequest {
+  string token = 1;
+}
+
+message AdminResponse {
+  bool   sukses = 1;
+  string pesan  = 2;
+}
+
+// ─── Dashboard ──────────────────────────────────────────────────────────────
+
+message StatistikJadwal {
+  string jadwal_id        = 1;
+  string film             = 2;
+  string studio           = 3;
+  string waktu            = 4;
+  int32  total_kursi      = 5;
+  int32  kursi_terisi     = 6;
+  int32  kursi_kosong     = 7;
+  int32  total_pesanan    = 8;
+}
+
+message DashboardResponse {
+  bool   sukses               = 1;
+  string pesan                = 2;
+  int32  total_jadwal         = 3;
+  int32  total_pesanan_aktif  = 4;
+  int32  total_kursi_terisi   = 5;
+  int32  total_kursi_kosong   = 6;
+  repeated StatistikJadwal statistik = 7;
+}
+
+// ─── Manajemen Jadwal ────────────────────────────────────────────────────────
+
+message TambahJadwalRequest {
+  string token  = 1;
+  string id     = 2;
+  string film   = 3;
+  string studio = 4;
+  string waktu  = 5;
+  int32  baris  = 6;
+  int32  kolom  = 7;
+}
+
+message UbahJadwalRequest {
+  string token     = 1;
+  string jadwal_id = 2;
+  string film      = 3;   // kosong = tidak diubah
+  string studio    = 4;
+  string waktu     = 5;
+}
+
+message HapusJadwalRequest {
+  string token     = 1;
+  string jadwal_id = 2;
+}
+
+// ─── Pemesanan ───────────────────────────────────────────────────────────────
+
+message ListPesananRequest {
+  string token     = 1;
+  string jadwal_id = 2;   // kosong = semua jadwal
+}
+
+message InfoPesanan {
+  string          kode_booking = 1;
+  string          jadwal_id    = 2;
+  string          film         = 3;
+  string          pemesan      = 4;
+  repeated string kursi        = 5;
+  bool            aktif        = 6;
+}
+
+message ListPesananResponse {
+  bool   sukses  = 1;
+  string pesan   = 2;
+  repeated InfoPesanan pesanan = 3;
+}
+
+message DetailTransaksiRequest {
+  string token        = 1;
+  string kode_booking = 2;
+}
+
+message DetailTransaksiResponse {
+  bool        sukses  = 1;
+  string      pesan   = 2;
+  InfoPesanan pesanan = 3;
+}
