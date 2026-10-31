@@ -35,14 +35,14 @@ class KlienBioskop:
                     self.on_retry(nama, p, e.code().name, jeda)
                 time.sleep(jeda)
 
-    # --- operasi idempoten: aman diulang tanpa pengaman tambahan
+    # Operasi idempoten: aman diulang tanpa pengaman tambahan
     def list_jadwal(self):
         return self._panggil("ListJadwal", lambda p: pb.ListJadwalRequest())
 
     def peta(self, jadwal_id):
         return self._panggil("GetPetaKursi", lambda p: pb.PetaRequest(jadwal_id=jadwal_id))
 
-    # --- operasi TIDAK idempoten: request_id dibuat SEKALI per operasi logis
+    # Operasi TIDAK idempoten: request_id dibuat SEKALI per operasi logis
     def pesan_kursi(self, jadwal_id, pemesan, kursi, request_id=None, id_baru_tiap_percobaan=False):
         """id_baru_tiap_percobaan=True hanya untuk demo 'tanpa deduplikasi' (SALAH di produksi)."""
         rid = request_id or str(uuid.uuid4())
@@ -58,6 +58,6 @@ class KlienBioskop:
         return self._panggil("BatalkanPesanan", lambda p: pb.BatalRequest(
             request_id=rid, kode_booking=kode_booking, pemesan=pemesan))
 
-    # --- streaming (tanpa deadline; pemanggil menangani RpcError/putus koneksi)
+    # Streaming (tanpa deadline; pemanggil menangani RpcError/putus koneksi)
     def pantau(self, jadwal_id):
         return self.stub.StreamStatusKursi(pb.PetaRequest(jadwal_id=jadwal_id))

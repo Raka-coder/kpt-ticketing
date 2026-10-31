@@ -9,8 +9,7 @@ import threading
 from logika import Jadwal, StoreBioskop, InputTidakValid, JadwalTidakAda, _buat_kursi
 
 
-# ─── Tambah / Ubah / Hapus Jadwal ────────────────────────────────────────────
-
+# Tambah, Ubah, dan Hapus Jadwal
 def tambah_jadwal(store: StoreBioskop,
                   id: str, film: str, studio: str, waktu: str,
                   baris: int, kolom: int) -> dict:
@@ -78,8 +77,7 @@ def hapus_jadwal(store: StoreBioskop, jadwal_id: str) -> dict:
     return {"sukses": True, "pesan": f"Jadwal '{jadwal_id}' berhasil dihapus"}
 
 
-# ─── Data Pemesanan ───────────────────────────────────────────────────────────
-
+# Data Pemesanan
 def list_semua_pesanan(store: StoreBioskop, jadwal_id: str = "") -> list[dict]:
     """Kembalikan semua pesanan; saring per jadwal jika jadwal_id diisi."""
     hasil = []
@@ -121,8 +119,7 @@ def get_detail_transaksi(store: StoreBioskop, kode_booking: str) -> dict | None:
         )
 
 
-# ─── Statistik / Dashboard ───────────────────────────────────────────────────
-
+# Statistik dan Dashboard
 def get_statistik(store: StoreBioskop) -> dict:
     """Kumpulkan statistik seluruh jadwal untuk dashboard admin."""
     stats = []

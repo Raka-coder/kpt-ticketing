@@ -3,19 +3,21 @@ Contoh: python server.py --port 50051 --workers 32 --state-file state.json
 Opsi demo kegagalan: --lambat-prob 0.5 --lambat-detik 3  (balasan terlambat SETELAH commit)
 Opsi demo race    : --tanpa-lock                         (menonaktifkan lock; hanya untuk demo)"""
 import argparse
+import logging
 import random
 import time
 from concurrent import futures
 
 import grpc
 
+import admin_pb2_grpc as _apb_grpc
 import bioskop_pb2 as pb
 import bioskop_pb2_grpc as pb_grpc
-from logika import StoreBioskop, JadwalTidakAda, InputTidakValid
-
-# --- Admin service (additive, tidak mengubah LayananBioskop di atas) ----------
-import admin_pb2_grpc as _apb_grpc
 from admin import LayananAdminServicer
+from logika import InputTidakValid, JadwalTidakAda, StoreBioskop
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logger = logging.getLogger("server")
 
 
 class LayananBioskop(pb_grpc.LayananBioskopServicer):
@@ -90,7 +92,7 @@ def serve():
                     help="simulasi beban validasi gateway pembayaran (0.2-0.5 detik)")
     a = ap.parse_args()
 
-    # Deteksi dan cetak IP Lokal untuk demo 2 laptop
+    # Deteksi dan simpan IP Lokal untuk demo 2 laptop
     try:
         from scripts.find_master import get_local_ip
         local_ip = get_local_ip()
@@ -107,17 +109,14 @@ def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=a.workers))
     pb_grpc.add_LayananBioskopServicer_to_server(
         LayananBioskop(store, a.lambat_prob, a.lambat_detik), server)
-    # Admin service didaftarkan di server yang sama (additive)
+    # Admin service didaftarkan di server yang sama
     _apb_grpc.add_LayananAdminServicer_to_server(LayananAdminServicer(store), server)
     server.add_insecure_port(f"[::]:{a.port}")
     server.start()
 
-    print("=" * 60, flush=True)
-    print(f"TICKET_MASTER_IP={local_ip}", flush=True)
-    print(f"Server bioskop berjalan di {local_ip}:{a.port}", flush=True)
-    print(f"(workers={a.workers}, state={a.state_file}, lambat={a.lambat_prob}, "
-          f"tanpa_lock={a.tanpa_lock}, simulasi_beban={a.simulasi_beban})", flush=True)
-    print("=" * 60, flush=True)
+    logger.info("TICKET_MASTER_IP=%s", local_ip)
+    logger.info("Server bioskop berjalan di %s:%d (workers=%d, state=%s, lambat=%.1f, tanpa_lock=%s, simulasi_beban=%s)",
+                local_ip, a.port, a.workers, a.state_file, a.lambat_prob, a.tanpa_lock, a.simulasi_beban)
     try:
         server.wait_for_termination()
     except KeyboardInterrupt:

@@ -18,8 +18,7 @@ _TOKEN_TTL = 3600          # detik (1 jam)
 _sessions: dict[str, float] = {}   # token -> waktu_kedaluwarsa
 
 
-# ─── Konfigurasi ─────────────────────────────────────────────────────────────
-
+# Konfigurasi
 def _hash_password(password: str, salt: str) -> str:
     return hashlib.sha256((salt + password).encode()).hexdigest()
 
@@ -54,8 +53,7 @@ def config_ada() -> bool:
     return bool(data.get("users"))
 
 
-# ─── Login / Logout ──────────────────────────────────────────────────────────
-
+# Login / Logout
 def login(username: str, password: str) -> tuple[bool, str]:
     """Verifikasi kredensial. Kembalikan (sukses, token_atau_pesan_error)."""
     data = _baca_config()
@@ -86,8 +84,7 @@ def verifikasi_token(token: str) -> bool:
     return True
 
 
-# ─── CLI Setup ───────────────────────────────────────────────────────────────
-
+# CLI Setup
 def _cmd_setup():
     print("=== Setup Akun Admin ===")
     username = input("Username baru: ").strip()

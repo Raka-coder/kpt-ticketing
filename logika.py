@@ -75,7 +75,7 @@ class StoreBioskop:
         if state_file and os.path.exists(state_file):
             self._muat()
 
-    # ---------------------------------------------------------------- util
+    # Utilitas
     def _get(self, jadwal_id):
         j = self._jadwal.get(jadwal_id)
         if j is None:
@@ -91,7 +91,7 @@ class StoreBioskop:
                 j.events.append((len(j.events) + 1, kode, pemesan))
             j.cond.notify_all()
 
-    # --------------------------------------------------------------- baca
+    # Operasi baca
     def list_jadwal(self):
         hasil = []
         for j in self._jadwal.values():
@@ -104,7 +104,7 @@ class StoreBioskop:
         with j.cond:
             return j.info(), list(j.kursi.items())
 
-    # -------------------------------------------------------------- tulis
+    # Operasi tulis
     def pesan(self, request_id, jadwal_id, pemesan, kursi):
         if not request_id:
             raise InputTidakValid("request_id wajib diisi")
@@ -191,7 +191,7 @@ class StoreBioskop:
         self._simpan()
         return dict(hasil)
 
-    # ------------------------------------------------------------- stream
+    # Server streaming
     def ikuti(self, jadwal_id, aktif=lambda: True, tunggu=1.0):
         """Generator: (seq, kode, pemesan, snapshot). Snapshot dulu, lalu perubahan baru."""
         j = self._get(jadwal_id)
@@ -209,7 +209,7 @@ class StoreBioskop:
             for seq, kode, pemesan in baru:
                 yield (seq, kode, pemesan, False)
 
-    # ---------------------------------------------------------- persisten
+    # Persistensi
     def _simpan(self):
         if not self.state_file:
             return

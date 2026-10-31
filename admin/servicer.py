@@ -18,8 +18,7 @@ class LayananAdminServicer(apb_grpc.LayananAdminServicer):
     def __init__(self, store: StoreBioskop):
         self.store = store
 
-    # ─── Helper ──────────────────────────────────────────────────────────────
-
+    # Helper
     @staticmethod
     def _tolak(context, pesan: str,
                kode: grpc.StatusCode = grpc.StatusCode.PERMISSION_DENIED):
@@ -31,16 +30,14 @@ class LayananAdminServicer(apb_grpc.LayananAdminServicer):
             return False
         return True
 
-    # ─── Autentikasi ─────────────────────────────────────────────────────────
-
+    # Autentikasi
     def LoginAdmin(self, request, context):
         sukses, hasil = auth.login(request.username, request.password)
         if sukses:
             return apb.LoginResponse(sukses=True, pesan="Login berhasil", token=hasil)
         return apb.LoginResponse(sukses=False, pesan=hasil, token="")
 
-    # ─── Dashboard ───────────────────────────────────────────────────────────
-
+    # Dashboard
     def GetDashboard(self, request, context):
         if not self._cek_token(request.token, context):
             return
@@ -57,8 +54,7 @@ class LayananAdminServicer(apb_grpc.LayananAdminServicer):
             statistik=stats,
         )
 
-    # ─── Manajemen Jadwal ─────────────────────────────────────────────────────
-
+    # Manajemen Jadwal
     def TambahJadwal(self, request, context):
         if not self._cek_token(request.token, context):
             return
@@ -93,8 +89,7 @@ class LayananAdminServicer(apb_grpc.LayananAdminServicer):
             return apb.AdminResponse(sukses=False, pesan=str(e))
         return apb.AdminResponse(**h)
 
-    # ─── Pemesanan ────────────────────────────────────────────────────────────
-
+    # Pemesanan
     def ListSemuaPesanan(self, request, context):
         if not self._cek_token(request.token, context):
             return
