@@ -133,5 +133,27 @@ class TesBioskop(unittest.TestCase):
             self.assertEqual(dict(s2.peta("J1")[1])["A1"], "andi")
 
 
+# --- Format pengujian pytest standar (sesuai instruksi Bagian 3 plan.md) ---
+from concurrent.futures import ThreadPoolExecutor
+
+
+def test_race_condition_kursi_sama():
+    """Uji race condition standar menggunakan ThreadPoolExecutor (dijalankan via pytest atau test runner)."""
+    sistem = StoreBioskop()
+    results = []
+
+    def booking(user):
+        r = sistem.pesan(f"req-{user}", "J1", user, ["A1"])
+        return r["sukses"]
+
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        futures = [executor.submit(booking, f"user{i}") for i in range(5)]
+        results = [f.result() for f in futures]
+
+    # Hanya 1 yang boleh True, sisanya False
+    assert results.count(True) == 1
+    assert results.count(False) == 4
+
+
 if __name__ == "__main__":
     unittest.main()

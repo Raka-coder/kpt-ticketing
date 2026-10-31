@@ -3,6 +3,10 @@
     "admin": {
       "password_hash": "3a541e8551d4be87d57ec3dbb3ece8fc5dbb6d5f0fdc649e48ab6d61ac7005d7",
       "salt": "20a282d7197e047f073c27b15be2d069"
+    },
+    "raka": {
+      "password_hash": "c77d167bc8620dd8f871da3bd9c63cc7bbf61e2f2dcdff07d80abbabfd500338",
+      "salt": "a0ecce7702f452292ad38bba19cc07ce"
     }
   }
 }

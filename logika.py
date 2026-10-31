@@ -20,6 +20,7 @@ import contextlib
 import copy
 import json
 import os
+import random
 import threading
 import time
 
@@ -64,10 +65,12 @@ JADWAL_AWAL = [
 
 
 class StoreBioskop:
-    def __init__(self, jadwal=JADWAL_AWAL, state_file=None, tanpa_lock=False):
+    def __init__(self, jadwal=JADWAL_AWAL, state_file=None, tanpa_lock=False, simulasi_beban=False, simulasi_durasi=(0.2, 0.5)):
         self._jadwal = {j[0]: Jadwal(*j) for j in jadwal}
         self.state_file = state_file
         self.tanpa_lock = tanpa_lock            # HANYA untuk demo race condition
+        self.simulasi_beban = simulasi_beban    # Simulasi beban komputasi paralel/validasi gateway
+        self.simulasi_durasi = simulasi_durasi
         self._persist_lock = threading.Lock()
         if state_file and os.path.exists(state_file):
             self._muat()
@@ -134,6 +137,11 @@ class StoreBioskop:
                              kode_booking="", kursi_dipesan=[], kursi_gagal=gagal,
                              duplikat=False)
             else:
+                # SIMULASI BEBAN VALIDASI PEMBAYARAN (Wajib untuk Skenario A Komputasi Paralel)
+                # Merepresentasikan komunikasi eksternal / verifikasi payment gateway
+                if self.simulasi_beban:
+                    time.sleep(random.uniform(*self.simulasi_durasi))
+
                 j.counter += 1
                 kode = f"{j.id}-{j.counter:04d}"
                 for k in kursi:

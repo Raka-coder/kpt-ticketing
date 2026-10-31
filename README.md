@@ -12,22 +12,25 @@ satu kursi tidak pernah terjual dua kali walau diperebutkan banyak client; clien
 
 | Berkas / Folder | Fungsi |
 |---|---|
-| `proto/bioskop.proto` | Kontrak layanan (IDL): 5 RPC (4 unary + 1 server streaming) |
+| `proto/bioskop.proto` | Kontrak layanan tiket (IDL): 5 RPC (4 unary + 1 server streaming) |
+| `proto/admin.proto` | Kontrak layanan admin (IDL): auth, jadwal, pesanan, dashboard |
+| `admin/` | Package layanan admin: autentikasi (`auth.py`), logika admin (`logika.py`), gRPC servicer (`servicer.py`) |
 | `logika.py` | Logika bisnis thread-safe: lock per jadwal, deduplikasi, streaming, persistensi (tanpa gRPC) |
-| `server.py` | Server gRPC (servicer tipis di atas `logika.py`) |
+| `server.py` | Server gRPC (servicer bioskop + admin, auto-detect IP LAN) |
 | `klien.py` | Pustaka client: timeout, retry + backoff + jitter, request_id otomatis |
-| `klien_cli.py` | CLI: `jadwal`, `peta`, `pesan`, `batal`, `pantau` |
+| `klien_cli.py` | CLI pemesanan: `jadwal`, `peta`, `pesan`, `batal`, `pantau` |
+| `admin_cli.py` | CLI admin interaktif: login, dashboard, kelola jadwal & pesanan |
+| `run_client.bat` / `.ps1` | Wrapper command pendek untuk demo 2 laptop |
+| `scripts/bench.py` | Pengukuran kinerja scaling & throughput (1, 5, 20 client) → grafik otomatis |
+| `scripts/find_master.py` | Utilitas deteksi IP lokal server di jaringan LAN/Wi-Fi |
 | `scripts/uji_race.py` | Uji beban race condition via gRPC (rebutan 1 kursi; rebutan kursi acak) |
-| `scripts/demo_retry.py` | Demo timeout + retry, dengan/tanpa deduplikasi |
-| `scripts/bench.py` | Pengukuran latensi & throughput untuk 1, 5, 20 client → CSV + grafik |
-| `tests/test_logika.py` | 11 uji unit logika bisnis (tanpa gRPC) |
-| `scripts/eksperimen_lokal.py` | Eksperimen dengan lock vs tanpa lock (tanpa gRPC) |
-| `laporan/Laporan_ProyekRPC.pdf` | Laporan proyek |
-| `generate_stubs.py` | Membuat `bioskop_pb2.py` dan `bioskop_pb2_grpc.py` dari proto |
-| `run_tests.py` | Menjalankan seluruh uji lokal dengan satu perintah |
-| `run_race_local.py` | Menjalankan uji race condition lokal (server + client) dengan satu perintah |
+| `scripts/run_race_local.py` | Menjalankan uji race condition lokal end-to-end |
+| `tests/` | Uji unit logika bisnis & fitur admin (kompatibel `unittest` & `pytest`) |
+| `run_tests.py` | Menjalankan seluruh test suite dengan satu perintah |
+| `hasil/` | Grafik visualisasi benchmark (`grafik_scaling.png`, `hasil_bench.png`) & CSV |
+| `laporan/` | Naskah laporan proyek & diagram arsitektur |
 
-Catatan: berkas `bioskop_pb2.py` dan `bioskop_pb2_grpc.py` dihasilkan otomatis (diabaikan oleh
+Catatan: berkas `*_pb2.py` dan `*_pb2_grpc.py` dihasilkan otomatis (diabaikan oleh
 `.gitignore`) dan tidak disimpan di repositori.
 
 ## Instalasi
@@ -65,13 +68,29 @@ Pemantauan real-time (server streaming) — buka di terminal ketiga lalu pesan d
 python klien_cli.py pantau J1
 ```
 
-### Dua laptop (server dan client, tanpa Docker)
+### Dua laptop (1 Laptop Server / Master, 1 Laptop Client / Teman)
 
-1. Di laptop **server**: jalankan `python server.py`, lalu cek IP-nya (`ipconfig` di Windows /
-   `ip a` di Linux/macOS); buka port **50051** di firewall.
-2. Di laptop **client**: jalankan skrip client dengan `--host <IP-SERVER>:50051`, misalnya
-   `python scripts/uji_race.py --host 192.168.1.10:50051` (semua skrip client menerima
-   `--host IP:PORT`).
+1. Di laptop **server**:
+   ```bash
+   python server.py
+   # Server otomatis menampilkan banner TICKET_MASTER_IP=192.168.x.x
+   # dan menyimpan file master_ip.txt
+   ```
+2. Di laptop **client (Teman)**:
+   - Hubungkan ke Wi-Fi / Hotspot yang sama dengan server.
+   - Set IP server satu kali:
+     ```cmd
+     scripts\set_master 192.168.x.x
+     ```
+   - Sekarang perintah demo client sangat pendek dan mudah dijalankan:
+     ```cmd
+     run_client jadwal
+     run_client peta J1
+     run_client pesan J1 Teman A1 A2
+     run_client batal J1-0001 Teman
+     run_client pantau J1
+     ```
+   *(Tersedia juga `.\run_client.ps1` untuk PowerShell dan `./scripts/run_client.sh` untuk Linux/macOS)*.
 
 ## Skenario demo (disarankan untuk presentasi)
 

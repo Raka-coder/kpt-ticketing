@@ -15,7 +15,7 @@ from logika import StoreBioskop, JadwalTidakAda, InputTidakValid
 
 # --- Admin service (additive, tidak mengubah LayananBioskop di atas) ----------
 import admin_pb2_grpc as _apb_grpc
-from admin_servicer import LayananAdminServicer
+from admin import LayananAdminServicer
 
 
 class LayananBioskop(pb_grpc.LayananBioskopServicer):
@@ -86,9 +86,24 @@ def serve():
     ap.add_argument("--lambat-prob", type=float, default=0.0)
     ap.add_argument("--lambat-detik", type=float, default=3.0)
     ap.add_argument("--tanpa-lock", action="store_true")
+    ap.add_argument("--simulasi-beban", action="store_true",
+                    help="simulasi beban validasi gateway pembayaran (0.2-0.5 detik)")
     a = ap.parse_args()
 
-    store = StoreBioskop(state_file=a.state_file, tanpa_lock=a.tanpa_lock)
+    # Deteksi dan cetak IP Lokal untuk demo 2 laptop
+    try:
+        from scripts.find_master import get_local_ip
+        local_ip = get_local_ip()
+    except Exception:
+        local_ip = "127.0.0.1"
+
+    try:
+        with open("master_ip.txt", "w", encoding="utf-8") as f:
+            f.write(local_ip.strip())
+    except Exception:
+        pass
+
+    store = StoreBioskop(state_file=a.state_file, tanpa_lock=a.tanpa_lock, simulasi_beban=a.simulasi_beban)
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=a.workers))
     pb_grpc.add_LayananBioskopServicer_to_server(
         LayananBioskop(store, a.lambat_prob, a.lambat_detik), server)
@@ -96,9 +111,13 @@ def serve():
     _apb_grpc.add_LayananAdminServicer_to_server(LayananAdminServicer(store), server)
     server.add_insecure_port(f"[::]:{a.port}")
     server.start()
-    print(f"Server bioskop berjalan di port {a.port} "
-          f"(workers={a.workers}, state={a.state_file}, lambat={a.lambat_prob}, "
-          f"tanpa_lock={a.tanpa_lock})", flush=True)
+
+    print("=" * 60, flush=True)
+    print(f"TICKET_MASTER_IP={local_ip}", flush=True)
+    print(f"Server bioskop berjalan di {local_ip}:{a.port}", flush=True)
+    print(f"(workers={a.workers}, state={a.state_file}, lambat={a.lambat_prob}, "
+          f"tanpa_lock={a.tanpa_lock}, simulasi_beban={a.simulasi_beban})", flush=True)
+    print("=" * 60, flush=True)
     try:
         server.wait_for_termination()
     except KeyboardInterrupt:

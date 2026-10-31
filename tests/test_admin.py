@@ -11,8 +11,8 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from logika import StoreBioskop, InputTidakValid, JadwalTidakAda
-import admin_logika as al
-import admin_auth
+import admin.logika as al
+import admin.auth as admin_auth
 
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
