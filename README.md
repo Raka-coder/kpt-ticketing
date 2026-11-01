@@ -102,7 +102,9 @@ kpt-ticketing/
 │   ├── benchmark_scaling.csv       # Data skalabilitas pemrosesan transaksi paralel
 │   ├── grafik_scaling.png          # Visualisasi diagram batang waktu pemrosesan vs worker
 │   ├── hasil_bench.csv             # Metrik lengkap throughput & latensi rata-rata / p95
-│   └── hasil_bench.png             # Kurva grafik perbandingan throughput & latensi
+│   ├── hasil_bench.png             # Kurva grafik perbandingan throughput & latensi
+│   ├── uji_race.txt                # Bukti eksekusi uji race condition (SEMUA LULUS)
+│   └── demo_retry.txt              # Bukti demo retry & deduplikasi (KONSISTEN)
 │
 ├── laporan/                        # Naskah Laporan Resmi Proyek & Aset Diagram
 │   ├── Laporan_ProyekRPC.pdf
@@ -339,6 +341,12 @@ Jalankan runner race condition otomatis:
 python scripts/run_race_local.py
 # atau: python run_race_local.py
 ```
+
+Atau jalankan langsung dengan kontrol penuh:
+```bash
+python scripts/uji_race.py --host localhost:50051 --klien 50
+```
+
 **Skenario Uji:**
 1. **Tes 1 (50 Client Rebut 1 Kursi Sama):**
    50 thread gRPC client serentak memesan kursi `J1/A1`.
@@ -346,6 +354,8 @@ python scripts/run_race_local.py
 2. **Tes 2 (100 Client Memesan Kursi Acak):**
    100 thread gRPC client masing-masing memesan 3 kursi acak sekaligus di jadwal `J2`.
    *Hasil:* Tidak ada satupun kursi yang dimiliki ganda. Total kursi terisi selalu konsisten dengan laporan reservasi.
+
+> **Bukti tersimpan:** `hasil/uji_race.txt` — output lengkap eksekusi dengan hasil `SEMUA LULUS`.
 
 ---
 
@@ -358,7 +368,7 @@ Membuktikan mekanisme *at-most-once* dengan `request_id` dan penanganan *network
    ```
 2. Jalankan demo retry dengan deduplikasi aktif:
    ```bash
-   python scripts/demo_retry.py
+   python scripts/demo_retry.py --jadwal J2
    ```
    *Hasil:* Saat respons jaringan terlambat melewati batas timeout client (1.0s), client otomatis melakukan retry dengan exponential backoff. Server mendeteksi `request_id` yang sama dari cache deduplikasi dan mengembalikan transaksi asli tanpa menduplikasi pemesanan (*KONSISTEN*).
 3. Jalankan demo tanpa deduplikasi (sebagai pembanding kegagalan):
@@ -366,6 +376,8 @@ Membuktikan mekanisme *at-most-once* dengan `request_id` dan penanganan *network
    python scripts/demo_retry.py --tanpa-dedup
    ```
    *Hasil:* Muncul "pesanan hantu" (client menerima pesan gagal karena kursi sudah terisi di percobaan pertama).
+
+> **Bukti tersimpan:** `hasil/demo_retry.txt` — output lengkap eksekusi dengan ringkasan `KONSISTEN: pandangan client == server`.
 
 ---
 
