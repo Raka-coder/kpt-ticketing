@@ -1,0 +1,30 @@
+Mode: DENGAN deduplikasi (id tetap); timeout client 5.0s
+
+A1: BERHASIL 
+A2: BERHASIL 
+A3: BERHASIL 
+A4: BERHASIL 
+A5: BERHASIL 
+A6: BERHASIL 
+A7: BERHASIL 
+A8: BERHASIL 
+A9: BERHASIL 
+A10: BERHASIL 
+B1: BERHASIL 
+B2: BERHASIL 
+B3: BERHASIL 
+B4: BERHASIL 
+B5: BERHASIL 
+B6: BERHASIL 
+B7: BERHASIL 
+B8: BERHASIL 
+B9: BERHASIL 
+B10: BERHASIL 
+
+=== Ringkasan ===
+Permintaan logis           : 20
+Total retry                : 0
+Dilaporkan sukses (client) : 20 (di antaranya dari cache dedup: 0)
+Dilaporkan gagal  (client) : 0   error timeout: 0
+Kursi terisi di SERVER     : 20
+KONSISTEN: pandangan client == server

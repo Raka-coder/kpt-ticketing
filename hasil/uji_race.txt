@@ -1,0 +1,3 @@
+[Tes 1] 50 client rebut J1/A1: pemenang=1, galat=0 -> LULUS
+[Tes 2] 100 client x 3 kursi acak di J2: pesanan sukses=17, kursi terpakai=51, kursi ganda=tidak ada, jumlah konsisten=ya, galat=0 -> LULUS
+SEMUA LULUS
