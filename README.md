@@ -275,11 +275,11 @@ sequenceDiagram
 
 | Perintah Windows | Perintah Linux / macOS | Deskripsi Aksi |
 |---|---|---|
-| `run_client jadwal` | `./scripts/run_client.sh jadwal` | Melihat daftar tayang bioskop |
-| `run_client peta J1` | `./scripts/run_client.sh peta J1` | Melihat denah visual kursi J1 |
-| `run_client pesan J1 Teman A1 A2` | `./scripts/run_client.sh pesan J1 Teman A1 A2` | Memesan kursi A1 & A2 |
-| `run_client batal J1-0001 Teman` | `./scripts/run_client.sh batal J1-0001 Teman` | Membatalkan tiket pesanan |
-| `run_client pantau J1` | `./scripts/run_client.sh pantau J1` | Memantau perubahan kursi real-time |
+| `.\run_client jadwal` | `./scripts/run_client.sh jadwal` | Melihat daftar tayang bioskop |
+| `.\run_client peta J1` | `./scripts/run_client.sh peta J1` | Melihat denah visual kursi J1 |
+| `.\run_client pesan J1 Teman A1 A2` | `./scripts/run_client.sh pesan J1 Teman A1 A2` | Memesan kursi A1 & A2 |
+| `.\run_client batal J1-0001 Teman` | `./scripts/run_client.sh batal J1-0001 Teman` | Membatalkan tiket pesanan |
+| `.\run_client pantau J1` | `./scripts/run_client.sh pantau J1` | Memantau perubahan kursi real-time |
 
 *(Pengguna Windows PowerShell juga dapat menggunakan `.\run_client.ps1 [perintah]`)*.
 
