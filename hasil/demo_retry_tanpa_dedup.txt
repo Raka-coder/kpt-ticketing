@@ -1,0 +1,47 @@
+Mode: TANPA deduplikasi (id baru tiap percobaan); timeout client 1.0s
+
+   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.17s
+A1: client menerima GAGAL -> 'Kursi sudah terisi: A1'
+A2: BERHASIL 
+A3: BERHASIL 
+A4: BERHASIL 
+   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.21s
+   [retry] PesanKursi percobaan 2 gagal (DEADLINE_EXCEEDED); ulang 0.29s
+A5: client menerima GAGAL -> 'Kursi sudah terisi: A5'
+A6: BERHASIL 
+A7: BERHASIL 
+   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.13s
+   [retry] PesanKursi percobaan 2 gagal (DEADLINE_EXCEEDED); ulang 0.32s
+A8: client menerima GAGAL -> 'Kursi sudah terisi: A8'
+B1: BERHASIL 
+   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.17s
+B2: client menerima GAGAL -> 'Kursi sudah terisi: B2'
+   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.15s
+   [retry] PesanKursi percobaan 2 gagal (DEADLINE_EXCEEDED); ulang 0.47s
+   [retry] PesanKursi percobaan 3 gagal (DEADLINE_EXCEEDED); ulang 0.59s
+B3: client menerima GAGAL -> 'Kursi sudah terisi: B3'
+   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.13s
+B4: client menerima GAGAL -> 'Kursi sudah terisi: B4'
+B5: BERHASIL 
+   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.18s
+B6: client menerima GAGAL -> 'Kursi sudah terisi: B6'
+B7: BERHASIL 
+   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.20s
+B8: client menerima GAGAL -> 'Kursi sudah terisi: B8'
+C1: BERHASIL 
+   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.19s
+   [retry] PesanKursi percobaan 2 gagal (DEADLINE_EXCEEDED); ulang 0.35s
+C2: client menerima GAGAL -> 'Kursi sudah terisi: C2'
+   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.19s
+   [retry] PesanKursi percobaan 2 gagal (DEADLINE_EXCEEDED); ulang 0.43s
+   [retry] PesanKursi percobaan 3 gagal (DEADLINE_EXCEEDED); ulang 0.70s
+C3: ERROR DEADLINE_EXCEEDED setelah semua percobaan
+C4: BERHASIL 
+
+=== Ringkasan ===
+Permintaan logis           : 20
+Total retry                : 17
+Dilaporkan sukses (client) : 10 (di antaranya dari cache dedup: 0)
+Dilaporkan gagal  (client) : 9   error timeout: 1
+Kursi terisi di SERVER     : 20
+TIDAK KONSISTEN: 10 kursi terisi di server tetapi client mengira gagal (pesanan hantu)

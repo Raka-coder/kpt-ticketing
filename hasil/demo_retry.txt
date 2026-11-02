@@ -1,44 +1,40 @@
 Mode: DENGAN deduplikasi (id tetap); timeout client 1.0s
 
-   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.21s
-A1: BERHASIL (balasan ulang dari cache dedup)
-A2: BERHASIL 
-   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.20s
+A1: BERHASIL 
+   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.17s
+A2: BERHASIL (balasan ulang dari cache dedup)
+   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.14s
 A3: BERHASIL (balasan ulang dari cache dedup)
-   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.20s
-A4: BERHASIL (balasan ulang dari cache dedup)
+A4: BERHASIL 
 A5: BERHASIL 
 A6: BERHASIL 
-   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.14s
-A7: BERHASIL (balasan ulang dari cache dedup)
-   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.16s
-A8: BERHASIL (balasan ulang dari cache dedup)
-B1: BERHASIL 
-   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.21s
-B2: BERHASIL (balasan ulang dari cache dedup)
-   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.16s
-B3: BERHASIL (balasan ulang dari cache dedup)
+A7: BERHASIL 
    [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.13s
-B4: BERHASIL (balasan ulang dari cache dedup)
-   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.23s
-B5: BERHASIL (balasan ulang dari cache dedup)
-   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.18s
-B6: BERHASIL (balasan ulang dari cache dedup)
-   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.23s
-B7: BERHASIL (balasan ulang dari cache dedup)
-B8: BERHASIL 
-   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.18s
-C1: BERHASIL (balasan ulang dari cache dedup)
-C2: BERHASIL 
-   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.17s
-C3: BERHASIL (balasan ulang dari cache dedup)
+A8: BERHASIL (balasan ulang dari cache dedup)
+   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.21s
+B1: BERHASIL (balasan ulang dari cache dedup)
    [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.14s
+B2: BERHASIL (balasan ulang dari cache dedup)
+B3: BERHASIL 
+   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.21s
+B4: BERHASIL (balasan ulang dari cache dedup)
+   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.20s
+B5: BERHASIL (balasan ulang dari cache dedup)
+B6: BERHASIL 
+B7: BERHASIL 
+   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.15s
+B8: BERHASIL (balasan ulang dari cache dedup)
+C1: BERHASIL 
+C2: BERHASIL 
+   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.13s
+C3: BERHASIL (balasan ulang dari cache dedup)
+   [retry] PesanKursi percobaan 1 gagal (DEADLINE_EXCEEDED); ulang 0.15s
 C4: BERHASIL (balasan ulang dari cache dedup)
 
 === Ringkasan ===
 Permintaan logis           : 20
-Total retry                : 14
-Dilaporkan sukses (client) : 20 (di antaranya dari cache dedup: 14)
+Total retry                : 10
+Dilaporkan sukses (client) : 20 (di antaranya dari cache dedup: 10)
 Dilaporkan gagal  (client) : 0   error timeout: 0
 Kursi terisi di SERVER     : 20
 KONSISTEN: pandangan client == server
