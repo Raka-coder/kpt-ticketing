@@ -23,6 +23,7 @@ Proyek implementasi sistem reservasi tiket bioskop terdistribusi berbasis **gRPC
    - [Uji Beban Race Condition (Rebutan Kursi)](#uji-beban-race-condition-rebutan-kursi)
    - [Demo Toleransi Kegagalan (Timeout & Retry)](#demo-toleransi-kegagalan-timeout--retry)
    - [Benchmark Skalabilitas Komputasi Paralel](#benchmark-skalabilitas-komputasi-paralel)
+   - [Benchmark & Uji Lintas Jaringan (2 Laptop)](#benchmark--uji-lintas-jaringan-2-laptop)
 8. [Desain Teknis & Concurrency Guard](#desain-teknis--concurrency-guard)
 9. [Batasan Sistem](#batasan-sistem)
 
@@ -318,6 +319,18 @@ python admin_cli.py --host 192.168.1.41:50051
 
 ## Pengujian & Verifikasi Kinerja
 
+> **Skema bukti otomatis:** setiap skrip pengujian (kecuali test suite unit) menuliskan outputnya
+> secara otomatis ke folder `hasil/` dan menimpa (overwrite) file bukti lama pada setiap
+> eksekusi ulang — aman dijalankan berkali-kali tanpa perintah `tee`/`mv` manual:
+>
+> | Pengujian | Skrip | File bukti yang dihasilkan (auto) |
+> |---|---|---|
+> | Benchmark baca/tulis 1/5/20 client | `scripts/bench.py` | `hasil_bench.csv`, `hasil_bench.png`, `benchmark_scaling.csv`, `grafik_scaling.png` |
+> | Race condition | `scripts/uji_race.py` | `uji_race.txt` |
+> | Timeout & retry | `scripts/demo_retry.py` | `demo_retry.txt` |
+> | Lintas jaringan 2 laptop | `scripts/jaringan.py` | `*_jaringan.csv/png/txt` |
+> | Test unit | `run_tests.py` | output console saja |
+
 ### Test Suite Unit & Konkurensi
 Seluruh logika bisnis murni, mekanisme locking, deduplikasi, dan fungsionalitas admin diuji menggunakan test suite komprehensif.
 
@@ -393,6 +406,52 @@ Skrip secara otomatis menghasilkan metrik dan grafik di direktori `hasil/`:
 1. `hasil/grafik_scaling.png`: Diagram batang perbandingan waktu pemrosesan transaksi paralel terhadap jumlah thread worker.
 2. `hasil/hasil_bench.png`: Grafik kurva throughput (transaksi/detik) dan latensi rata-rata / persentil ke-95 (p95).
 3. `hasil/benchmark_scaling.csv` & `hasil/hasil_bench.csv`: Rekapitulasi data numerik hasil benchmark.
+
+---
+
+### Benchmark & Uji Lintas Jaringan (2 Laptop)
+Mengukur latensi dan throughput **end-to-end** saat client dan server berada di dua laptop
+berbeda (timer di sisi client, jadi jaringan ikut terukur). Skrip `scripts/jaringan.py`
+menjalankan benchmark + uji race sekaligus dan menyimpan SEMUA bukti otomatis ke `hasil/`
+dengan akhiran `_jaringan` — hasil lokal di `hasil/` tidak pernah tertimpa.
+
+**Langkah 1 — Laptop 1 (SERVER):**
+```bash
+python server.py --port 50051          # catat banner TICKET_MASTER_IP=<ip>
+python scripts/find_master.py          # alternatif: ipconfig (IPv4)
+# buka firewall, PowerShell AS ADMINISTRATOR:
+netsh advfirewall firewall add rule name="gRPC 50051" dir=in action=allow protocol=TCP localport=50051
+# Linux: sudo ufw allow 50051/tcp
+```
+
+**Langkah 2 — Laptop 2 (CLIENT), kedua laptop pada WiFi/LAN yang sama:**
+```bash
+ping <IP_SERVER>                                            # harus membalas
+python klien_cli.py --host <IP_SERVER>:50051 jadwal        # harus tampil daftar film
+
+# benchmark + uji race sekaligus, bukti otomatis tersimpan di hasil/:
+python scripts/jaringan.py --host <IP_SERVER>:50051
+```
+
+Skrip otomatis menghasilkan (dan menimpa lama pada tiap eksekusi):
+1. `hasil/hasil_bench_jaringan.csv` — tabel throughput & latensi 6 baris (baca & tulis × 1/5/20 klien).
+2. `hasil/hasil_bench_jaringan.png` — grafik throughput & latensi.
+3. `hasil/grafik_scaling_jaringan.png` — grafik scaling waktu tulis.
+4. `hasil/bench_log_jaringan.txt` — log console benchmark lengkap.
+5. `hasil/uji_race_jaringan.txt` — bukti race lintas mesin (`SEMUA LULUS`).
+
+Di akhir eksekusi, skrip memverifikasi otomatis dan mencetak `HASIL AKHIR: LULUS`
+bila semua kriteria terpenuhi (6 baris, galat=0, latensi jaringan ≥ lokal, semua file ada).
+
+**Kriteria data valid (untuk laporan):**
+- Latensi jaringan (`lat_avg_ms`/`lat_p95_ms`) LEBIH BESAR dari versi lokal
+  (`hasil/hasil_bench.csv`) — jika lebih kecil, curigai salah host (tertukar localhost).
+- Throughput jaringan umumnya LEBIH KECIL dari lokal, terutama mode baca.
+- `uji_race_jaringan.txt` berisi `pemenang=1, galat=0 -> LULUS` dan `SEMUA LULUS`.
+
+**Tips:** gunakan `--n 5` bila WiFi tidak stabil, atau `--lewati-race` untuk benchmark saja.
+Rekomendasi ideal: jadwal J9 (780 kursi) dipakai benchmark; gunakan hotspot HP untuk
+menghindari AP isolation jaringan kampus/kantor.
 
 ---
 
