@@ -12,6 +12,7 @@ import threading
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from klien import KlienBioskop
+from scripts.keluaran import catat_ke
 
 
 def serentak(n, host, fungsi):
@@ -78,8 +79,10 @@ if __name__ == "__main__":
     ap.add_argument("--jadwal1", default="J1")
     ap.add_argument("--kursi", default="A1")
     ap.add_argument("--jadwal2", default="J2")
+    ap.add_argument("--keluar", default=os.path.join("hasil", "uji_race.txt"))
     a = ap.parse_args()
-    hasil = [tes_satu_kursi(a.host, a.klien, a.jadwal1, a.kursi),
-             tes_acak(a.host, a.klien * 2, a.jadwal2)]
-    print("SEMUA LULUS" if all(hasil) else "ADA YANG GAGAL")
-    sys.exit(0 if all(hasil) else 1)
+    with catat_ke(a.keluar):
+        hasil = [tes_satu_kursi(a.host, a.klien, a.jadwal1, a.kursi),
+                 tes_acak(a.host, a.klien * 2, a.jadwal2)]
+        print("SEMUA LULUS" if all(hasil) else "ADA YANG GAGAL")
+        sys.exit(0 if all(hasil) else 1)
