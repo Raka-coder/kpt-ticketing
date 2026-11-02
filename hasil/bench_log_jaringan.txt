@@ -1,0 +1,11 @@
+mode   klien     op  waktu(s)    req/s  avg(ms)  p95(ms) galat
+baca       1     10     0.139     72.2    13.65    12.33     0
+baca       5     50     0.186    269.1    17.88    24.21     0
+baca      20    200     0.562    355.6    53.03    66.49     0
+tulis      1     20     0.326     61.3    16.29    43.87     0
+tulis      5    100     0.272    367.6    13.32    62.07     0
+tulis     20    400     0.727    550.6    34.33    99.98     0
+CSV tersimpan di: C:\Kelompok01_ProyekRPC\hasil_jaringan\hasil_bench.csv
+CSV scaling tersimpan di: C:\Kelompok01_ProyekRPC\hasil_jaringan\benchmark_scaling.csv
+Grafik tersimpan di C:\Kelompok01_ProyekRPC\hasil_jaringan\grafik_scaling.png
+Grafik throughput & latensi tersimpan di C:\Kelompok01_ProyekRPC\hasil_jaringan\hasil_bench.png

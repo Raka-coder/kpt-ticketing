@@ -17,14 +17,28 @@ from scripts.keluaran import catat_ke
 
 PEMESAN = "demo-retry"
 
+AKAR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def baca_host_default():
+    path = os.path.join(AKAR, "master_ip.txt")
+    if os.path.isfile(path):
+        isi = open(path, encoding="utf-8").read().strip()
+        if isi:
+            return f"{isi}:50051"
+    return "localhost:50051"
+
+
 ap = argparse.ArgumentParser()
-ap.add_argument("--host", default="localhost:50051")
+ap.add_argument("--host", default=None,
+                help="default: isi master_ip.txt, atau localhost:50051 bila kosong")
 ap.add_argument("--jumlah", type=int, default=20)
 ap.add_argument("--timeout", type=float, default=1.0)
 ap.add_argument("--jadwal", default="J3")
 ap.add_argument("--tanpa-dedup", action="store_true")
 ap.add_argument("--keluar", default=os.path.join("hasil", "demo_retry.txt"))
 a = ap.parse_args()
+host = a.host or baca_host_default()
 
 retry = {"n": 0}
 
@@ -34,7 +48,7 @@ def catat(nama, p, kode, jeda):
     print(f"   [retry] {nama} percobaan {p} gagal ({kode}); ulang {jeda:.2f}s")
 
 
-k = KlienBioskop(a.host, timeout=a.timeout, maks_percobaan=4, on_retry=catat)
+k = KlienBioskop(host, timeout=a.timeout, maks_percobaan=4, on_retry=catat)
 peta = k.peta(a.jadwal)
 if peta.jadwal.kursi_kosong != peta.jadwal.baris * peta.jadwal.kolom:
     raise SystemExit("Jadwal tidak kosong. Restart server dulu agar demo bersih.")

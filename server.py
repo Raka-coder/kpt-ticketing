@@ -56,7 +56,8 @@ class LayananBioskop(pb_grpc.LayananBioskopServicer):
                                  request.pemesan, request.kursi)
         except (JadwalTidakAda, InputTidakValid) as e:
             self._galat(context, e)
-        self._mungkin_lambat()
+        if not h["duplikat"]:  # replay dedup harus instan, agar retry selalu terjawab
+            self._mungkin_lambat()
         return pb.PesanResponse(**h)
 
     def BatalkanPesanan(self, request, context):
