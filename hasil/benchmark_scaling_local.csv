@@ -1,0 +1,4 @@
+workers,waktu_total,throughput
+1,0.106,377.8
+5,0.174,1152.0
+20,0.703,1138.3
