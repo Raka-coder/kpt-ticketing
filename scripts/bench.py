@@ -2,18 +2,31 @@
 Mengukur:
 1. Waktu total pemrosesan N transaksi dengan variasi thread worker/client (1, 5, 20).
 2. Throughput (req/s) dan latensi rata-rata.
-3. Otomatis menghasilkan grafik scaling batang dan garis ke folder hasil/grafik_scaling.png & hasil/hasil_bench.png.
+3. Otomatis menghasilkan grafik scaling batang dan garis berLABEL (lokal/jaringan)
+   sehingga file output tidak saling menimpa.
 
-Jalankan:
-  python scripts/bench.py --host localhost:50051 --n 20 --klien 1 5 20
+Contoh:
+  # Jalur A (server & client di satu laptop):
+  python scripts/bench.py --host localhost:50051 --n 20 --klien 1 5 20 --label lokal
+
+  # Jalur B (client di laptop A, server di laptop teman):
+  python scripts/bench.py --host 192.168.1.XX:50051 --n 20 --klien 1 5 20 --label jaringan
+
+Nama file output otomatis berbentuk:
+  hasil_bench_20261104_143210_lokal_20klien.csv
+  benchmark_scaling_20261104_143210_lokal_20klien.csv
+  grafik_scaling_20261104_143210_lokal_20klien.png
+  hasil_bench_20261104_143210_lokal_20klien.png
 """
 import argparse
 import csv
 import os
+import socket
 import statistics
 import sys
 import threading
 import time
+from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from klien import KlienBioskop
@@ -66,8 +79,8 @@ def jalankan(host, jml_klien, n, jadwal, mode):
                 lat_p95_ms=round(lat_ms[int(0.95 * (len(lat_ms) - 1))], 2) if lat_ms else 0.0)
 
 
-def buat_grafik(baris, klien_list, keluar_dir):
-    """Menghasilkan grafik scaling sesuai instruksi plan.md Bagian 2 & 4."""
+def buat_grafik(baris, klien_list, keluar_dir, prefix):
+    """Menghasilkan grafik scaling & detail throughput/latensi berlabel."""
     try:
         import matplotlib
         matplotlib.use("Agg")
@@ -80,7 +93,8 @@ def buat_grafik(baris, klien_list, keluar_dir):
             workers = [str(r["klien"]) for r in tulis_rows]
             waktu_total = [r["waktu_s"] for r in tulis_rows]
             bars = ax_bar.bar(workers, waktu_total, color="#2b5c8f", width=0.5, edgecolor="black")
-            ax_bar.set_title("Skalabilitas Server Ticketing (Simulasi Validasi Pembayaran)", fontsize=12, fontweight="bold")
+            ax_bar.set_title("Skalabilitas Server Ticketing (Simulasi Validasi Pembayaran)",
+                             fontsize=12, fontweight="bold")
             ax_bar.set_xlabel("Jumlah Thread Worker / Client", fontsize=10)
             ax_bar.set_ylabel("Waktu Total Pemrosesan (detik)", fontsize=10)
             ax_bar.grid(axis="y", linestyle="--", alpha=0.5)
@@ -93,7 +107,7 @@ def buat_grafik(baris, klien_list, keluar_dir):
                                 ha="center", va="bottom", fontsize=9, fontweight="bold")
 
             fig_bar.tight_layout()
-            path_scaling = os.path.join(keluar_dir, "grafik_scaling.png")
+            path_scaling = os.path.join(keluar_dir, f"grafik_scaling_{prefix}.png")
             fig_bar.savefig(path_scaling, dpi=150)
             plt.close(fig_bar)
             print(f"Grafik tersimpan di {path_scaling}")
@@ -121,7 +135,7 @@ def buat_grafik(baris, klien_list, keluar_dir):
         ax[1].legend()
 
         fig.tight_layout()
-        path_bench = os.path.join(keluar_dir, "hasil_bench.png")
+        path_bench = os.path.join(keluar_dir, f"hasil_bench_{prefix}.png")
         fig.savefig(path_bench, dpi=150)
         plt.close(fig)
         print(f"Grafik throughput & latensi tersimpan di {path_bench}")
@@ -137,8 +151,14 @@ if __name__ == "__main__":
     ap.add_argument("--klien", type=int, nargs="+", default=[1, 5, 20])
     ap.add_argument("--jadwal", default="J9")
     ap.add_argument("--keluar", default="hasil")
+    ap.add_argument("--label", default="", help="pelabelan eksekusi, mis. 'lokal' atau 'jaringan'")
     a = ap.parse_args()
     os.makedirs(a.keluar, exist_ok=True)
+
+    # Prefix unik anti-timpa: timestamp + label + jumlah klien terbesar
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    label = a.label or socket.gethostname().lower()
+    prefix = f"{stamp}_{label}_{a.klien[-1]}klien"
 
     baris = []
     print(f"{'mode':6s} {'klien':>5s} {'op':>6s} {'waktu(s)':>9s} {'req/s':>8s} {'avg(ms)':>8s} {'p95(ms)':>8s} {'galat':>5s}")
@@ -149,16 +169,21 @@ if __name__ == "__main__":
             print(f"{r['mode']:6s} {r['klien']:5d} {r['total_op']:6d} {r['waktu_s']:9.3f} "
                   f"{r['throughput']:8.1f} {r['lat_avg_ms']:8.2f} {r['lat_p95_ms']:8.2f} {r['galat']:5d}")
 
-    # Simpan CSV hasil_bench.csv
-    csv_path = os.path.join(a.keluar, "hasil_bench.csv")
+    # Simpan CSV hasil_bench berlabel (+ kolom metadata host/waktu/label)
+    csv_path = os.path.join(a.keluar, f"hasil_bench_{prefix}.csv")
+    fieldnames = list(baris[0].keys()) + ["host", "waktu_eksekusi", "label"]
     with open(csv_path, "w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=list(baris[0].keys()))
+        w = csv.DictWriter(f, fieldnames=fieldnames)
         w.writeheader()
-        w.writerows(baris)
+        for r in baris:
+            r = dict(r, host=socket.gethostname(),
+                     waktu_eksekusi=datetime.now().isoformat(timespec="seconds"),
+                     label=label)
+            w.writerow(r)
     print("CSV tersimpan di:", csv_path)
 
-    # Simpan juga format benchmark_scaling.csv sesuai plan.md
-    scaling_csv_path = os.path.join(a.keluar, "benchmark_scaling.csv")
+    # Simpan format benchmark_scaling berlabel sesuai plan.md
+    scaling_csv_path = os.path.join(a.keluar, f"benchmark_scaling_{prefix}.csv")
     tulis_data = [dict(workers=r["klien"], waktu_total=r["waktu_s"], throughput=r["throughput"])
                   for r in baris if r["mode"] == "tulis"]
     if tulis_data:
@@ -168,5 +193,5 @@ if __name__ == "__main__":
             w.writerows(tulis_data)
         print("CSV scaling tersimpan di:", scaling_csv_path)
 
-    # Buat visualisasi grafik otomatis
-    buat_grafik(baris, a.klien, a.keluar)
+    # Buat visualisasi grafik otomatis (berlabel)
+    buat_grafik(baris, a.klien, a.keluar, prefix)
