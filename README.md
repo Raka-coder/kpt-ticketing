@@ -94,7 +94,7 @@ kpt-ticketing/
 │   ├── set_master.bat              # Helper konfigurasi IP master untuk laptop client
 │   └── uji_race.py                 # Uji konkurensi gRPC (rebutan kursi tunggal & acak)
 │
-├── tests/                          # Test Suite Komprehensif (47 Test Cases)
+├── tests/                          # Test Suite Komprehensif (51 Test Cases)
 │   ├── __init__.py
 │   ├── test_admin.py               # Unit test autentikasi dan logika admin
 │   └── test_logika.py              # Unit test atomisitas kursi, dedup, dan race condition
@@ -172,7 +172,7 @@ Kompilasi kontrak antarmuka proto ke stub Python (`*_pb2.py` dan `*_pb2_grpc.py`
 ```bash
 python generate_stubs.py
 ```
-
+opencode -s ses_e64d28b19ffeTpNsUyzxSKGsVh
 #### Menggunakan Bash Script (Linux / macOS):
 ```bash
 chmod +x generate_stub.sh scripts/run_client.sh
@@ -341,7 +341,7 @@ python run_tests.py
 pytest tests/ -v
 ```
 **Hasil Evaluasi:**
-* **47 Test Cases:** 100% Lolos (`PASSED` / `OK`).
+* **51 Test Cases:** 100% Lolos (`PASSED` / `OK`).
 * Waktu eksekusi: ~1.1 detik.
 
 ---
