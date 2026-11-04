@@ -172,7 +172,7 @@ Kompilasi kontrak antarmuka proto ke stub Python (`*_pb2.py` dan `*_pb2_grpc.py`
 ```bash
 python generate_stubs.py
 ```
-opencode -s ses_e64d28b19ffeTpNsUyzxSKGsVh
+
 #### Menggunakan Bash Script (Linux / macOS):
 ```bash
 chmod +x generate_stub.sh scripts/run_client.sh
